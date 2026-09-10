@@ -11,3 +11,5 @@
 scripts
 tests
 Justfile
+build
+requirements.txt

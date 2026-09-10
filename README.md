@@ -1,28 +1,42 @@
-# tuw-thesis
+# Unofficial thesis template for informatics at TU Wien
 
-A Typst port of [`vutinfth`](https://gitlab.com/ThomasAUZINGER/vutinfth), the LaTeX class
-by Thomas Auzinger used for theses at TU Wien Informatics.
+A Typst template for theses at TU Wien Informatics, following
+[`vutinfth`](https://gitlab.com/ThomasAUZINGER/vutinfth), the official LaTeX class by
+Thomas Auzinger, as closely as Typst allows: the same page geometry, the same fonts at the
+same sizes, memoir's `veelo` chapter openers, the `Ruled` running heads that reach into the
+outer margin, and the official title page down to the position of the signature rules.
 
-The goal is a document that is hard to tell apart from the LaTeX original: the same page
-geometry, the same fonts at the same sizes, memoir's `veelo` chapter openers, the `Ruled`
-running heads that reach into the outer margin, and the official title page down to the
-position of the signature rules.
+An example thesis can be viewed here:
+https://otto-aa.github.io/definitely-not-tuw-thesis/thesis.pdf
 
-## Quick start
+## Usage
 
 ```bash
-typst compile --font-path fonts --root . template/thesis.typ
+typst init @preview/definitely-not-tuw-thesis
 ```
 
-Everything a thesis needs to set lives at the top of `template/thesis.typ`; the chapters go
-in `template/content/`. `template/content/template-tour.typ` is a chapter that exercises
-every element the template supports — read it once, then delete it.
+Then compile with the bundled fonts on the search path:
 
-`--font-path fonts` matters: the title page is set in Helvetica and the address line under
-it in Latin Modern Sans, neither of which Typst bundles. Without the flag the document still
-compiles, but those two fall back to whatever sans is installed.
+```bash
+typst compile --font-path fonts thesis.typ
+```
 
-## What you set in `thesis.typ`
+### Template overview
+
+After setting up the template you will have:
+
+- `thesis.typ` — the metadata for the title pages, the language arrangement, the reference
+  style, and the overall structure
+- `content/summaries.typ` — Danksagung, Acknowledgements, Kurzfassung, Abstract
+- `content/introduction.typ`, `content/related-work.typ` — your chapters
+- `content/template-tour.typ` — a chapter exercising every element the template supports;
+  read it once, then delete it
+- `refs.bib` — your references
+- `fonts/` — the faces the LaTeX class selects, so they need not be installed
+
+## Configuration
+
+Everything a thesis sets lives at the top of `thesis.typ`.
 
 ### Language
 
@@ -37,39 +51,33 @@ language of the thesis, `secondary-lang` the one it is additionally summarised i
 | English only | `"en"` | `none` |
 | German only | `"de"` | `none` |
 
-The summaries themselves carry the language they are written in, so the heading follows:
+The summaries carry the language they are written in, so the heading follows:
 
 ```typst
 #acknowledgements("de")[Ihr Text hier.]
-#acknowledgements("en")[Enter your text here.]
-#abstract("de")[…]     // titled "Kurzfassung"
-#abstract("en")[…]     // titled "Abstract"
+#abstract("en")[Enter your text here.]     // titled "Abstract"
+#abstract("de")[Ihr Text hier.]            // titled "Kurzfassung"
 ```
 
 The declaration of authorship, the running heads and the contents follow `lang`.
 
 ### People and data
 
-`author`, `advisor`, `second-advisor`, `assistants` and `reviewers` all take the same shape
-as the class's `\setauthor` and friends — a `name` with optional `pre-title` and
-`post-title`. The author additionally carries a `student-number`, and a reviewer may carry
-an `affiliation`. `title`, `subtitle`, `degree` and `curriculum` take one variant per
-language. `date` is a `datetime` and is rendered the way `datetime2` renders it: "1. Jänner
-2001" in German, "January 1, 2001" in English.
-
-The institution under the title page is `university`, defaulting to TU Wien:
-
-```typst
-university: (name: "…", contact: ("A-1040 Wien", "Karlsplatz 13", "…")),
-```
+`author`, `advisor`, `second-advisor`, `assistants` and `reviewers` take the same shape as
+the class's `\setauthor` and friends — a `name` with optional `pre-title` and `post-title`.
+The author additionally carries a `student-number`, and a reviewer may carry an
+`affiliation`. `title`, `subtitle`, `degree` and `curriculum` take one variant per language.
+`date` is a `datetime`, rendered the way `datetime2` renders it: "1. Jänner 2001" in German,
+"January 1, 2001" in English. The institution under the title page is `university`,
+defaulting to TU Wien.
 
 ### References
 
 `reference-style` defaults to `"alpha"` — BibTeX's alpha style, whose labels are built from
 the author and the year, as in `[Lam94]`. `"numeric"` gives `[1]`, and `"acm"` and `"apa"`
-the respective house styles. Any CSL style name Typst knows also works. The style is applied
-as a set rule, so `#bibliography("refs.bib")` in the document needs no arguments, and a
-`style:` given there still wins.
+the respective house styles. Any CSL style name Typst knows also works. It is applied as a
+set rule, so `#bibliography("refs.bib")` needs no arguments, and a `style:` given there
+still wins.
 
 ## Writing
 
@@ -91,6 +99,43 @@ their counters restart with it.
 Code is syntax-highlighted by default. For the plain black of the LaTeX original, add
 `#show raw: set text(fill: black)` to `thesis.typ`.
 
+### Styling
+
+To adapt the styling, remove the `show: …` rules in `thesis.typ` and replace them with your
+own, or simply add further `show: …` rules after them.
+
+## Fonts
+
+`template/fonts/` carries the faces the LaTeX class selects, so that a thesis looks right
+without installing anything:
+
+| File | Stands in for | Licence |
+| --- | --- | --- |
+| `texgyreheros-*.otf` | `helvet` (URW Nimbus Sans), the title page | GUST Font License |
+| `texgyrecursor-*.otf` | `courier` (URW Nimbus Mono), verbatim text | GUST Font License |
+| `lmsans10-*.otf` | Latin Modern Sans, the address line | GUST Font License |
+
+The body font, New Computer Modern, ships with Typst itself, so the body text needs no font
+path at all. Each stack ends in a widely available substitute, so a document still compiles
+without `--font-path fonts`; only the title page and the address line fall back.
+
+## How closely it matches
+
+Measured against `example-ref.pdf`, the reference output shipped with the LaTeX class, every
+horizontal position on the title page lands within half a point and the vertical positions
+within about two. The chapter opener — the small-caps "Chapter", the oversized numeral
+hanging into the margin and the block that runs off the paper — matches to within a point,
+as do the running heads, the folios and the table of contents columns.
+
+Two differences are inherent rather than incidental:
+
+- **Font metrics.** New Computer Modern is the maintained successor of Latin Modern. Its
+  bold is about 2% wider than the Type 1 Latin Modern the reference was built with, and its
+  small caps about 7% narrower, so individual words differ slightly in width even though
+  sizes and positions agree.
+- **Line breaking.** Typst and TeX break paragraphs differently, so a given paragraph will
+  not always occupy the same number of lines.
+
 ## Layout
 
 ```
@@ -107,72 +152,23 @@ src/
   outlines.typ       the table of contents and the four lists
   matter.typ         \frontmatter, \mainmatter, \backmatter, appendix
   i18n/              the class's own German and English wording
-template/            what you copy to start a thesis
-fonts/               TeX Gyre Heros, TeX Gyre Cursor, Latin Modern Sans
+template/            what `typst init` gives you, fonts included
 tests/               regression checks against the reference metrics
 ```
 
-## Building without a Typst binary
+## Contributing
 
-`scripts/build.py` drives the compiler through the `typst` Python package, so a Python
-virtual environment is all you need:
+I guess there are many ways to improve this template, feel free to do so and submit issues
+and PRs! More information at [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-```bash
-python -m venv .venv
-./.venv/Scripts/python.exe -m pip install -r requirements.txt   # Windows / Git Bash
-./.venv/bin/python -m pip install -r requirements.txt           # macOS / Linux
+## License
 
-./.venv/Scripts/python.exe scripts/build.py --render
-```
+The code is licensed under MIT-0. The 'TU Wien Informatics' logo and signet are copyright of
+the TU Wien. The fonts in `template/fonts/` are distributed under the
+[GUST Font License](https://www.gust.org.pl/projects/e-foundry/licenses).
 
-`--render` also rasterises the pages to `build/pages/`, which is how the layout was checked
-against the reference PDF.
+## Acknowledgments
 
-## Tests
-
-```bash
-./.venv/Scripts/python.exe tests/check_layout.py     # geometry against the reference
-./.venv/Scripts/python.exe tests/check_variants.py   # language modes, reference styles
-```
-
-`check_layout.py` asserts the numbers measured from `example-ref.pdf`, the reference output
-shipped with the LaTeX class. `check_variants.py` compiles the template once per language
-arrangement and per reference style and checks what comes out.
-
-## How closely it matches
-
-Every horizontal position on the title page lands within half a point of the reference and
-the vertical positions within about two. The chapter opener — the small-caps "Chapter", the
-oversized numeral hanging into the margin and the block that runs off the paper — matches to
-within a point, as do the running heads, the folios and the table of contents columns.
-
-Two differences are inherent rather than incidental:
-
-- **Font metrics.** The body is set in New Computer Modern, which Typst bundles and which is
-  the maintained successor of Latin Modern. Its bold is about 2% wider than the Type 1 Latin
-  Modern the reference was built with, and its small caps about 7% narrower, so individual
-  words differ slightly in width even though sizes and positions agree.
-- **Line breaking.** Typst and TeX break paragraphs differently, so a given paragraph will
-  not always occupy the same number of lines.
-
-## Fonts
-
-`fonts/` carries the faces the LaTeX class selects, so that they need not be installed:
-
-| File | Stands in for | Licence |
-| --- | --- | --- |
-| `texgyreheros-*.otf` | `helvet` (URW Nimbus Sans) | GUST Font License |
-| `texgyrecursor-*.otf` | `courier` (URW Nimbus Mono) | GUST Font License |
-| `lmsans10-*.otf` | Latin Modern Sans | GUST Font License |
-
-The body font, New Computer Modern, ships with Typst itself.
-
-Compiling prints `unknown font family` warnings for the fallback entries in each stack that
-are not installed on the machine — `Helvetica`, `Nimbus Sans` and so on. They are harmless;
-the stacks exist so the document degrades sensibly elsewhere.
-
-## Licence
-
-MIT, see `LICENSE`. The TU Wien Informatics logo in `src/assets/` and the cover image in
-`template/graphics/` are copyright of TU Wien and are included on the same basis as in the
-original class.
+This work is based on the [official template](https://gitlab.com/ThomasAUZINGER/vutinfth)
+maintained by Thomas Auzinger. The repository structure is based on
+[typst-package-template](https://github.com/typst-community/typst-package-template).

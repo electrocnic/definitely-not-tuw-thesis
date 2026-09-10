@@ -1,4 +1,4 @@
-#import "../../src/lib.typ": algorithm, flex-caption, listing, subfigure, subfigure-row
+#import "@preview/definitely-not-tuw-thesis:0.3.0": algorithm, flex-caption, listing, subfigure, subfigure-row
 
 = Using This Template <sec-tour-chapter>
 

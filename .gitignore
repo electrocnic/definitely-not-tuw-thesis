@@ -1,4 +1,4 @@
-# Build output
+# Build output (also staged template sources for local compilation)
 build/
 
 # Python virtual environment used by scripts/build.py

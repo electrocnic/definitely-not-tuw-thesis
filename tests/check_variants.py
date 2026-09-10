@@ -78,7 +78,7 @@ def render(name: str, lang: str, secondary: str | None, style: str, summaries: l
         str(source),
         output=str(output),
         root=str(ROOT),
-        font_paths=[str(ROOT / "fonts")],
+        font_paths=[str(ROOT / "template" / "fonts")],
     )
     doc = pymupdf.open(output)
     # Headings wrap, so collapse whitespace before matching against them.

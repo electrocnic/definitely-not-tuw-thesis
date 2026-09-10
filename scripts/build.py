@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Build the template and, optionally, compare the result against the LaTeX reference.
+"""Build the template and, optionally, rasterise the result.
 
 The Typst compiler and the PDF tooling both come from the project virtual environment, so
 nothing has to be installed system-wide:
@@ -12,18 +12,43 @@ Usage:
     python scripts/build.py                     # build template/thesis.typ -> build/thesis.pdf
     python scripts/build.py --render            # also rasterise every page to build/pages/
     python scripts/build.py --render --pages 1-8
+
+`template/` imports the library through `@preview/definitely-not-tuw-thesis`, because that is
+what a project created with `typst init` gets. To build from a checkout without publishing or
+installing the package first, the template is staged into build/ with those imports pointed
+at src/ — the same substitution the compile workflow makes.
 """
 
 from __future__ import annotations
 
 import argparse
+import re
+import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-FONT_DIR = ROOT / "fonts"
-DEFAULT_INPUT = ROOT / "template" / "thesis.typ"
+TEMPLATE_DIR = ROOT / "template"
+FONT_DIR = TEMPLATE_DIR / "fonts"
+STAGE_DIR = ROOT / "build" / "template"
+DEFAULT_INPUT = TEMPLATE_DIR / "thesis.typ"
 DEFAULT_OUTPUT = ROOT / "build" / "thesis.pdf"
+
+PACKAGE_IMPORT = re.compile(r'@preview/definitely-not-tuw-thesis:[0-9]+\.[0-9]+\.[0-9]+')
+LIBRARY = "/src/lib.typ"
+
+
+def stage(source: Path) -> Path:
+    """Copy the template into build/ with its package imports pointed at src/."""
+    if STAGE_DIR.exists():
+        shutil.rmtree(STAGE_DIR)
+    shutil.copytree(TEMPLATE_DIR, STAGE_DIR)
+    for path in STAGE_DIR.rglob("*.typ"):
+        text = path.read_text(encoding="utf-8")
+        rewritten = PACKAGE_IMPORT.sub(LIBRARY, text)
+        if rewritten != text:
+            path.write_text(rewritten, encoding="utf-8", newline="\n")
+    return STAGE_DIR / source.relative_to(TEMPLATE_DIR)
 
 
 def parse_pages(spec: str, last: int) -> list[int]:
@@ -41,7 +66,8 @@ def build(source: Path, output: Path) -> None:
     import typst
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    typst.compile(str(source), output=str(output), root=str(ROOT), font_paths=[str(FONT_DIR)])
+    entry = stage(source) if TEMPLATE_DIR in source.parents else source
+    typst.compile(str(entry), output=str(output), root=str(ROOT), font_paths=[str(FONT_DIR)])
     print(f"built {output.relative_to(ROOT)}")
 
 

@@ -1,4 +1,4 @@
-#import "../src/lib.typ": *
+#import "@preview/definitely-not-tuw-thesis:0.3.0": *
 
 #show: thesis.with(
   // Language the thesis is written in, and the language it is additionally summarised in.

@@ -1,4 +1,4 @@
-#import "../../src/lib.typ": abstract, acknowledgements
+#import "@preview/definitely-not-tuw-thesis:0.3.0": abstract, acknowledgements
 
 // German first, as is customary for a thesis submitted in Austria.
 #acknowledgements("de")[
