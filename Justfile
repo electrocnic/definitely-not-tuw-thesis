@@ -18,6 +18,10 @@ build:
 render *args:
 	{{ python }} scripts/build.py --render {{ args }}
 
+# regenerate the rendered example committed at the repository root
+example:
+	{{ python }} scripts/build.py -o example.pdf
+
 # run the regression suites
 test:
 	{{ python }} tests/check_layout.py

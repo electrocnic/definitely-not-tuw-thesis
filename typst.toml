@@ -12,6 +12,7 @@ exclude = [
 	".github",
 	"build",
 	"docs",
+	"example.pdf",
 	"scripts",
 	"tests",
 	".typstignore",

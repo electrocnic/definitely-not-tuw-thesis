@@ -92,9 +92,11 @@ def main() -> int:
     parser.add_argument("--dpi", type=int, default=110)
     args = parser.parse_args()
 
-    build(args.source, args.output)
+    # An output path given on the command line may be relative to the caller's directory.
+    output = args.output.resolve()
+    build(args.source, output)
     if args.render:
-        render(args.output, args.output.parent / "pages", args.pages, args.dpi)
+        render(output, output.parent / "pages", args.pages, args.dpi)
     return 0
 
 

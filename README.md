@@ -9,6 +9,9 @@ outer margin, and the official title page down to the position of the signature 
 An example thesis can be viewed here:
 https://otto-aa.github.io/definitely-not-tuw-thesis/thesis.pdf
 
+The same document is committed as [`example.pdf`](./example.pdf), so the output can be read
+without building anything. Regenerate it with `just example` after changing the template.
+
 ## Usage
 
 ```bash

@@ -13,3 +13,4 @@ tests
 Justfile
 build
 requirements.txt
+example.pdf

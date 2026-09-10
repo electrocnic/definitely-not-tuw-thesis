@@ -26,6 +26,10 @@ is what a project created with `typst init` gets. Building from a checkout stage
 template into `build/` with those imports pointed at `src/`, so no publishing or installing
 is needed first.
 
+`example.pdf` at the repository root is the rendered template, committed so that a change
+can be reviewed without building. Regenerate it with `just example` whenever the output
+changes.
+
 ## Testing
 
 `just test` runs two suites:
