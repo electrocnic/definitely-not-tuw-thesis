@@ -1,0 +1,6 @@
+# Build output
+build/
+
+# Python virtual environment used by scripts/build.py
+.venv/
+__pycache__/
