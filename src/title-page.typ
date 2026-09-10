@@ -35,7 +35,7 @@
 // Kept out of the line box with `move`, so the raised square does not open up the leading.
 #let bullet = [ #box(height: 0pt, move(dy: -2.6pt, square(size: 1.94pt, fill: black))) ]
 
-#let address-footer(lang) = {
+#let address-footer(lang, university) = {
   set align(center)
   set text(
     font: latin-sans,
@@ -47,9 +47,9 @@
   set par(spacing: title-page-baseline)
   line(length: 100%, stroke: 0.5pt)
   v(12.2pt, weak: true)
-  t(lang, "university-name")
+  university.name
   parbreak()
-  t(lang, "university-address").split("|").join(bullet, last: bullet)
+  university.contact.join(bullet, last: bullet)
 }
 
 #let logo = place(
@@ -113,7 +113,13 @@
     ..(([],) * (3 - reviewers.len())),
     ..reviewers.map(_ => line(length: 100%, stroke: 0.5pt)),
     ..(([],) * (3 - reviewers.len())),
-    ..reviewers.map(r => align(center, r.at("name", default: ""))),
+    ..reviewers.map(r => align(center, {
+      r.at("name", default: "")
+      if "affiliation" in r {
+        linebreak()
+        text(size: 0.92em, r.affiliation)
+      }
+    })),
   )
 }
 
@@ -131,7 +137,7 @@
     header: none,
     background: logo,
     footer-descent: 8.7pt,
-    footer: address-footer(lang),
+    footer: address-footer(lang, meta.university),
   )[
     #set text(
       font: sans,

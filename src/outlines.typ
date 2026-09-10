@@ -6,6 +6,7 @@
 // starts flush with the margin instead.
 
 #import "fonts.typ": *
+#import "floats.typ": in-outline
 #import "i18n/i18n.typ": t
 
 #let chapter-number-width = 16.37pt
@@ -54,6 +55,13 @@
   // itself, which Typst leaves out by default.
   show outline: set heading(outlined: true, bookmarked: true)
 
+  // Let captions switch to their short form while a list is being laid out.
+  show outline: it => {
+    in-outline.update(true)
+    it
+    in-outline.update(false)
+  }
+
   show outline.entry: it => {
     let row = if it.element.func() == figure {
       // The lists of figures and tables have a single level, laid out like a section entry
@@ -83,4 +91,14 @@
 #let list-of-tables(lang) = outline(
   title: t(lang, "list-of-tables"),
   target: figure.where(kind: table),
+)
+
+#let list-of-algorithms(lang) = outline(
+  title: t(lang, "list-of-algorithms"),
+  target: figure.where(kind: "algorithm"),
+)
+
+#let list-of-listings(lang) = outline(
+  title: t(lang, "list-of-listings"),
+  target: figure.where(kind: "listing"),
 )

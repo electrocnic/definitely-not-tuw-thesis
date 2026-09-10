@@ -2,44 +2,89 @@
 // TU Wien Informatics.
 //
 // The single entry point is `thesis`, applied as a show rule at the top of the document.
-// It sets the page and text defaults, emits the German and English title pages and the
-// declaration of authorship, and then hands over to the author's own content.
+// It sets the page and text defaults, emits the title pages and the declaration of
+// authorship, and then hands over to the author's own content.
 
 #import "layout.typ": *
 #import "fonts.typ": *
+#import "floats.typ": (
+  algorithm, figure-caption-gap, flex-caption, listing, subfigure, subfigure-row,
+  subfigure-styles,
+)
 #import "headings.typ": heading-styles
 #import "i18n/i18n.typ": format-date, localised, t
 #import "matter.typ": appendix, back-matter, front-matter, main-matter
-#import "outlines.typ": list-of-figures, list-of-tables, outline-styles, toc
+#import "outlines.typ": (
+  list-of-algorithms, list-of-figures, list-of-listings, list-of-tables, outline-styles, toc,
+)
 #import "page-style.typ": running-foot, running-head, skip-blank-verso
 #import "statement-page.typ": statement-page
+#import "summaries.typ": abstract, acknowledgements, ai-tools
 #import "title-page.typ": title-page
-#import "util.typ": person-name, signature-line
+#import "util.typ": person-name
+
+/// How references are labelled and formatted.
+///
+/// "alpha" is what the LaTeX class produces: BibTeX's alpha style, whose labels are built
+/// from the author and the year — [Lam94]. Typst's `alphanumeric` CSL produces those labels
+/// but only formats citations, so the entries themselves are laid out by a second style.
+#let reference-styles = (
+  alpha: (cite: "alphanumeric", entries: "ieee"),
+  numeric: (cite: auto, entries: "ieee"),
+  acm: (
+    cite: auto,
+    entries: "association-for-computing-machinery",
+  ),
+  apa: (cite: auto, entries: "american-psychological-association"),
+)
+
+/// The institution printed under the title page. Overridable, but the defaults are the ones
+/// the class ships.
+#let tu-wien = (
+  name: "Technische Universität Wien",
+  contact: ("A-1040 Wien", "Karlsplatz 13", "Tel. +43-1-58801-0", "www.tuwien.at"),
+)
 
 #let thesis(
-  /// Language of the body text: "en" or "de". Both title pages are always produced.
+  /// Language the thesis is written in: "en" or "de".
   lang: "en",
+  /// A second language for the title page and the summaries, or `none` for a thesis that
+  /// stays in one language. Austrian theses are usually written in one language and
+  /// summarised in both.
+  secondary-lang: "de",
   /// Title and subtitle, as a dictionary of per-language variants.
   title: (:),
   subtitle: none,
   /// One of "bachelor", "master", "diploma" or "doctor".
   thesis-type: "diploma",
-  /// The academic degree awarded, e.g. "Diplom-Ingenieur".
+  /// The academic degree awarded. The class offers "Bachelor of Science",
+  /// "Master of Science", "Diplom-Ingenieur(in)", "Magister/Magistra der
+  /// Naturwissenschaften", "… der Sozial- und Wirtschaftswissenschaften" and the
+  /// corresponding doctorates.
   degree: (en: "Diplom-Ingenieur", de: "Diplom-Ingenieur"),
   /// The curriculum. Dissertations leave this out.
   curriculum: none,
-  /// People, each a dictionary with `name` and optional `pre-title` / `post-title`.
-  /// The author additionally carries a `student-number`.
+  /// People. Each is a dictionary with `name` and the optional keys `pre-title` and
+  /// `post-title`; the author additionally carries a `student-number`, and a reviewer may
+  /// carry an `affiliation`.
   author: (:),
   advisor: none,
   second-advisor: none,
   assistants: (),
   reviewers: (),
+  /// The institution's own details, printed under the title page.
+  university: tu-wien,
+  /// A name from `reference-styles`, or any CSL style Typst knows.
+  reference-style: "alpha",
   keywords: (),
   date: datetime.today(),
   body,
 ) = {
   assert(lang in ("en", "de"), message: "lang must be \"en\" or \"de\"")
+  assert(
+    secondary-lang == none or secondary-lang in ("en", "de"),
+    message: "secondary-lang must be \"en\", \"de\" or none",
+  )
   assert(
     thesis-type in ("bachelor", "master", "diploma", "doctor"),
     message: "unknown thesis type: " + thesis-type,
@@ -79,6 +124,13 @@
   set text(hyphenate: true)
   show raw: set text(font: mono)
 
+  let refs = reference-styles.at(
+    reference-style,
+    default: (cite: auto, entries: reference-style),
+  )
+  set cite(style: refs.cite)
+  set bibliography(style: refs.entries, title: t(lang, "bibliography"))
+
   // Figures, tables and equations are numbered within the chapter — "Figure 3.1" — and
   // their counters restart with it, which the chapter show rule takes care of.
   let within-chapter(format) = n => numbering(format, counter(heading).get().first(), n)
@@ -86,9 +138,11 @@
   set math.equation(numbering: within-chapter("(1.1)"))
   // memoir puts a table's caption below it, like a figure's.
   show figure.where(kind: table): set figure.caption(position: bottom)
+  set figure(gap: figure-caption-gap)
 
   show: heading-styles.with(lang)
   show: outline-styles
+  show: subfigure-styles
 
   let meta = (
     title: title,
@@ -101,6 +155,7 @@
     second-advisor: second-advisor,
     assistants: assistants,
     reviewers: reviewers,
+    university: university,
     date: date,
   )
 
@@ -109,11 +164,19 @@
   // follows them is page v.
   show: front-matter
 
-  // Both title pages are printed, German first, each on its own right-hand page.
-  title-page("de", meta)
-  skip-blank-verso
-  title-page("en", meta)
-  skip-blank-verso
+  // One title page per language. German comes first where both are printed, which is the
+  // order the class's own example uses.
+  let title-languages = if secondary-lang == none {
+    (lang,)
+  } else if lang == "de" {
+    (lang, secondary-lang)
+  } else {
+    (secondary-lang, lang)
+  }
+  for language in title-languages {
+    title-page(language, meta)
+    skip-blank-verso
+  }
 
   statement-page(lang, author, date)
 

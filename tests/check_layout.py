@@ -59,17 +59,26 @@ def horizontal_rules(page, above=None):
     return out
 
 
+def find_chapter_opener(doc):
+    """The first page carrying the oversized chapter numeral."""
+    for number, page in enumerate(doc):
+        if any(span["size"] > 60 for span in spans(page)):
+            return number
+    raise AssertionError("no chapter opener found")
+
+
 def main() -> int:
     build(DEFAULT_INPUT, DEFAULT_OUTPUT)
     doc = pymupdf.open(DEFAULT_OUTPUT)
+    opener_index = find_chapter_opener(doc)
 
     print("\npage geometry")
-    page = doc[12]  # first chapter opener, a recto
+    page = doc[opener_index]  # first chapter opener, a recto
     check("paper width", page.rect.width, 595.28)
     check("paper height", page.rect.height, 841.89)
 
     print("\ntype block (recto)")
-    body = doc[13]  # a verso body page
+    body = doc[opener_index + 1]  # the verso that follows it
     line_starts = [s["bbox"][0] for s in spans(body) if 90 < s["bbox"][1] < 700]
     check("verso left edge = outer margin", min(line_starts), 107.15)
 
@@ -98,7 +107,7 @@ def main() -> int:
     check("outer signature rule ends at margin", max(r.x1 for r in signature_rules), 527.24)
 
     print("\nchapter opener")
-    opener = doc[12]
+    opener = doc[opener_index]
     check("small-caps 'Chapter' ends at type block", find(opener, "Chapter")["bbox"][2], 488.12)
     numeral = max(spans(opener), key=lambda s: s["size"])
     check("numeral size", numeral["size"], 81.0, tolerance=0.5)
