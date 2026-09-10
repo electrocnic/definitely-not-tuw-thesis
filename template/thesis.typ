@@ -45,11 +45,9 @@
     (pre-title: "Pretitle", name: "Forename Surname", post-title: "Posttitle"),
     (pre-title: "Pretitle", name: "Forename Surname", post-title: "Posttitle"),
   ),
-  // Dissertations name their reviewers instead of assistants:
-  // reviewers: (
-  //   (name: "Forename Surname", affiliation: "Affiliation, Country"),
-  //   (name: "Forename Surname", affiliation: "Affiliation, Country"),
-  // ),
+  // A dissertation names its reviewers instead of assistants. They sign above the author,
+  // who then signs alone — a thesis is countersigned by its advisor, a dissertation is not.
+  // reviewers: ((name: "Forename Surname"), (name: "Forename Surname")),
 
   // The institution under the title page. Defaults to TU Wien; override for another one.
   // university: (name: "…", contact: ("…", "…")),

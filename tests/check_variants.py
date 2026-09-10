@@ -27,10 +27,11 @@ DOCUMENT = """#import "/src/lib.typ": *
   lang: "{lang}",
   secondary-lang: {secondary},
   title: (en: "An English Title", de: "Ein deutscher Titel"),
-  thesis-type: "diploma",
+  thesis-type: "{thesis_type}",
   curriculum: (en: "Curriculum", de: "Studium"),
   author: (name: "Ada Lovelace", student-number: "0123456"),
   advisor: (name: "Charles Babbage"),
+  reviewers: {reviewers},
   reference-style: "{style}",
   date: datetime(year: 2001, month: 1, day: 1),
 )
@@ -61,7 +62,15 @@ def check(label: str, condition: bool, detail: str = "") -> None:
         failures.append(label)
 
 
-def render(name: str, lang: str, secondary: str | None, style: str, summaries: list[str]) -> str:
+def render(
+    name: str,
+    lang: str,
+    secondary: str | None,
+    style: str,
+    summaries: list[str],
+    thesis_type: str = "diploma",
+    reviewers: str = "()",
+) -> str:
     WORK.mkdir(parents=True, exist_ok=True)
     source = WORK / f"{name}.typ"
     source.write_text(
@@ -70,6 +79,8 @@ def render(name: str, lang: str, secondary: str | None, style: str, summaries: l
             secondary=f'"{secondary}"' if secondary else "none",
             style=style,
             summaries="".join(SUMMARY.format(lang=s) for s in summaries),
+            thesis_type=thesis_type,
+            reviewers=reviewers,
         ),
         encoding="utf-8",
     )
@@ -83,6 +94,18 @@ def render(name: str, lang: str, secondary: str | None, style: str, summaries: l
     doc = pymupdf.open(output)
     # Headings wrap, so collapse whitespace before matching against them.
     return " ".join("\n".join(page.get_text() for page in doc).split())
+
+
+def title_page_rules(name: str) -> list[tuple[float, float, float]]:
+    """The signature and reviewer rules on the first title page, top to bottom."""
+    doc = pymupdf.open(WORK / f"{name}.pdf")
+    rules = [
+        (round(d["rect"].y0, 2), round(d["rect"].x0, 2), round(d["rect"].x1, 2))
+        for d in doc[0].get_drawings()
+        # Below the advisor block and above the rule over the address in the foot.
+        if 540 < d["rect"].y0 < 775 and d["rect"].width > 40
+    ]
+    return sorted(rules)
 
 
 def main() -> int:
@@ -107,6 +130,25 @@ def main() -> int:
     text = render("de-only", "de", None, "alpha", ["de"])
     check("German-only prints one title page", "DIPLOMARBEIT" in text and "DIPLOMA THESIS" not in text)
     check("German-only has no Abstract chapter", "Abstract" not in text)
+
+    print("\ndissertation title page")
+    render(
+        "dissertation",
+        "en",
+        "de",
+        "alpha",
+        ["en"],
+        thesis_type="doctor",
+        reviewers='((name: "Grace Hopper"), (name: "Alan Turing"))',
+    )
+    rules = title_page_rules("dissertation")
+    # Two reviewer fields, then the author's alone at the outer edge: the class has a
+    # dissertation signed by its author only, where a thesis is signed by author and advisor.
+    check("dissertation has three rules", len(rules) == 3, f"got {len(rules)}")
+    if len(rules) == 3:
+        check("first reviewer field", rules[0][1:] == (223.94, 368.5), str(rules[0][1:]))
+        check("second reviewer field", rules[1][1:] == (382.68, 527.24), str(rules[1][1:]))
+        check("author signs alone, outer edge", rules[2][1:] == (382.68, 527.24), str(rules[2][1:]))
 
     print("\nreference styles")
     for style, expected, unexpected in (

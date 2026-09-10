@@ -65,8 +65,8 @@
   /// The curriculum. Dissertations leave this out.
   curriculum: none,
   /// People. Each is a dictionary with `name` and the optional keys `pre-title` and
-  /// `post-title`; the author additionally carries a `student-number`, and a reviewer may
-  /// carry an `affiliation`.
+  /// `post-title`; the author additionally carries a `student-number`. Reviewers apply to a
+  /// dissertation, which they sign above the author.
   author: (:),
   advisor: none,
   second-advisor: none,

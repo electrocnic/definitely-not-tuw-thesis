@@ -27,6 +27,9 @@
 // upwards into the space above instead of displacing everything below it.
 #let title-block-height = 5cm
 
+// From the "reviewed by" line down to the reviewers' rules.
+#let reviewed-to-signature = 60.2pt
+
 // LaTeX places the first baseline of a page \topskip below the top of the type block and
 // advances a further \baselineskip before each box that follows; Typst starts flush with
 // the top edge. This offset lines the two models up.
@@ -80,47 +83,44 @@
   )
 }
 
-/// The date on the left, then signature fields flush with the outer edge. The date shares
-/// its baseline with the signature rules.
-#let signature-block(lang, date, signatories) = {
-  let rule = line(length: 100%, stroke: 0.5pt)
-  let plain-name(person) = align(center, person.at("name", default: ""))
-  grid(
-    columns: (1fr,) + (signature-field-width,) * signatories.len(),
-    column-gutter: signature-field-gap,
-    row-gutter: 15.2pt,
-    align: bottom,
-    [#t(lang, "place"), #format-date(lang, date)],
-    ..signatories.map(_ => rule),
-    [],
-    ..signatories.map(plain-name),
-  )
+/// vutinfth's \SignatureFields: rules of a fixed width, flush with the outer edge of the
+/// type block, each with a name centred underneath. `lead` is whatever sits to their left —
+/// the date, or nothing. The date shares its baseline with the rules.
+#let signature-fields(lead, names, row-gutter: 15.2pt) = grid(
+  columns: (1fr,) + (signature-field-width,) * names.len(),
+  column-gutter: signature-field-gap,
+  row-gutter: row-gutter,
+  align: bottom,
+  lead,
+  ..names.map(_ => line(length: 100%, stroke: 0.5pt)),
+  [],
+  ..names.map(name => align(center, name)),
+)
+
+/// The date on the left, then the signatures. A thesis is signed by its author and its
+/// advisor; a dissertation only by its author, whose field stays at the outer edge.
+#let signature-block(lang, date, thesis-type, author, advisor) = {
+  let name-of(person) = if person == none { "" } else { person.at("name", default: "") }
+  let names = if thesis-type == "doctor" {
+    (name-of(author),)
+  } else {
+    (name-of(author), name-of(advisor))
+  }
+  signature-fields([#t(lang, "place"), #format-date(lang, date)], names)
 }
 
-/// The reviewer signatures a dissertation carries above the author's own.
+/// The reviewers of a dissertation sign above the author, in fields of the same width.
+///
+/// The class defines \setfirstreviewerdata and \setsecondreviewerdata for a reviewer's
+/// affiliation, but stopped printing them when support for external reviewers was removed
+/// in v1.12, so only the names appear here.
 #let reviewer-block(lang, reviewers) = {
   if reviewers.len() == 0 {
     return
   }
-  v(title-page-skip)
   t(lang, "reviewed-by")
-  v(title-page-skip * 3)
-  grid(
-    columns: (1fr,) * 3,
-    column-gutter: signature-field-gap,
-    row-gutter: 11.5pt,
-    // Reviewers are pushed to the right so the block ends at the outer edge.
-    ..(([],) * (3 - reviewers.len())),
-    ..reviewers.map(_ => line(length: 100%, stroke: 0.5pt)),
-    ..(([],) * (3 - reviewers.len())),
-    ..reviewers.map(r => align(center, {
-      r.at("name", default: "")
-      if "affiliation" in r {
-        linebreak()
-        text(size: 0.92em, r.affiliation)
-      }
-    })),
-  )
+  v(reviewed-to-signature, weak: true)
+  signature-fields([], reviewers.map(r => r.at("name", default: "")))
 }
 
 /// One title page in the given language.
@@ -203,7 +203,7 @@
 
     #reviewer-block(lang, meta.reviewers)
 
-    #signature-block(lang, meta.date, (meta.author, meta.advisor))
+    #signature-block(lang, meta.date, meta.thesis-type, meta.author, meta.advisor)
 
     #v(1cm)
   ]

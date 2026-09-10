@@ -68,8 +68,9 @@ The declaration of authorship, the running heads and the contents follow `lang`.
 
 `author`, `advisor`, `second-advisor`, `assistants` and `reviewers` take the same shape as
 the class's `\setauthor` and friends — a `name` with optional `pre-title` and `post-title`.
-The author additionally carries a `student-number`, and a reviewer may carry an
-`affiliation`. `title`, `subtitle`, `degree` and `curriculum` take one variant per language.
+The author additionally carries a `student-number`. Reviewers apply to a dissertation: they
+sign above the author, who — unlike the author of a thesis — signs without the advisor
+alongside. `title`, `subtitle`, `degree` and `curriculum` take one variant per language.
 `date` is a `datetime`, rendered the way `datetime2` renders it: "1. Jänner 2001" in German,
 "January 1, 2001" in English. The institution under the title page is `university`,
 defaulting to TU Wien.
