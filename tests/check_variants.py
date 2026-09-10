@@ -27,6 +27,7 @@ DOCUMENT = """#import "/src/lib.typ": *
   lang: "{lang}",
   secondary-lang: {secondary},
   two-sided: {two_sided},
+  title-page-languages: {title_page_languages},
   title: (en: "An English Title", de: "Ein deutscher Titel"),
   thesis-type: "{thesis_type}",
   master-degree: "{master_degree}",
@@ -56,7 +57,48 @@ A citation: @lamport1994latex.
 
 SUMMARY = '#abstract("{lang}")[Some text.]\n'
 
+# Acronyms, the glossary and the index stand apart from the options above: they need terms
+# declared, used in the body, and listed at the back.
+REFERENCE_LISTS = """#import "/src/lib.typ": *
+
+#show: thesis.with(
+  lang: "en",
+  secondary-lang: none,
+  title: (en: "Terms"),
+  thesis-type: "bachelor",
+  author: (name: "Ada Lovelace", student-number: "0123456"),
+  advisor: (name: "Charles Babbage"),
+  terms: (
+    pdf: (short: "PDF", long: "Portable Document Format"),
+    ctan: (short: "CTAN", long: "Comprehensive TeX Archive Network"),
+    unused: (short: "NOPE", long: "Never Referenced"),
+    editor: (name: "editor", description: "A program for editing plain text."),
+  ),
+  date: datetime(year: 2001, month: 1, day: 1),
+)
+
+#show: main-matter
+
+= A Chapter
+
+First: #gls("pdf"). Second: #gls("pdf"). Plural: #gls("editor", plural: true).
+Full: #acrfull("ctan").
+
+Indexed#index-entry("gamma") here, and#index-entry("alpha") here.
+
+#show: back-matter
+
+#acronyms("en")
+#glossary("en")
+#index("en")
+"""
+
 failures: list[str] = []
+
+
+def normalise(text: str) -> str:
+    """Flatten the layout back out: undo hyphenation, then collapse the line breaks."""
+    return " ".join(text.replace("­\n", "").replace("­", "").split())
 
 
 def check(label: str, condition: bool, detail: str = "") -> None:
@@ -77,6 +119,7 @@ def render(
     gender: str = "female",
     reviewers: str = "()",
     two_sided: str = "true",
+    title_page_languages: str = "auto",
 ) -> str:
     WORK.mkdir(parents=True, exist_ok=True)
     source = WORK / f"{name}.typ"
@@ -92,6 +135,7 @@ def render(
             gender=gender,
             reviewers=reviewers,
             two_sided=two_sided,
+            title_page_languages=title_page_languages,
         ),
         encoding="utf-8",
     )
@@ -103,8 +147,8 @@ def render(
         font_paths=[str(ROOT / "template" / "fonts")],
     )
     doc = pymupdf.open(output)
-    # Headings wrap, so collapse whitespace before matching against them.
-    return " ".join("\n".join(page.get_text() for page in doc).split())
+    # Headings wrap and words hyphenate, so flatten before matching against them.
+    return normalise("\n".join(page.get_text() for page in doc))
 
 
 def title_page_rules(name: str) -> list[tuple[float, float, float]]:
@@ -141,6 +185,14 @@ def main() -> int:
     text = render("de-only", "de", None, "alpha", ["de"])
     check("German-only prints one title page", "DIPLOMARBEIT" in text and "DIPLOMA THESIS" not in text)
     check("German-only has no Abstract chapter", "Abstract" not in text)
+
+    print("\ncover page order")
+    render("cover-default", "en", "de", "alpha", ["en"])
+    first = pymupdf.open(WORK / "cover-default.pdf")[0].get_text()
+    check("defaults to German first", "DIPLOMARBEIT" in first, first.split("\n")[1])
+    render("cover-english", "en", "de", "alpha", ["en"], title_page_languages='("en", "de")')
+    first = pymupdf.open(WORK / "cover-english.pdf")[0].get_text()
+    check("explicit order leads with English", "DIPLOMA THESIS" in first, first.split("\n")[1])
 
     print("\nsingle-sided printing")
     render("one-sided", "en", None, "alpha", ["en"], two_sided="false")
@@ -218,6 +270,28 @@ def main() -> int:
         check("first reviewer field", rules[0][1:] == (223.94, 368.5), str(rules[0][1:]))
         check("second reviewer field", rules[1][1:] == (382.68, 527.24), str(rules[1][1:]))
         check("author signs alone, outer edge", rules[2][1:] == (382.68, 527.24), str(rules[2][1:]))
+
+    print("\nacronyms, glossary and index")
+    WORK.mkdir(parents=True, exist_ok=True)
+    source = WORK / "terms.typ"
+    source.write_text(REFERENCE_LISTS, encoding="utf-8")
+    typst.compile(
+        str(source),
+        output=str(WORK / "terms.pdf"),
+        root=str(ROOT),
+        font_paths=[str(ROOT / "template" / "fonts")],
+    )
+    body = normalise("\n".join(page.get_text() for page in pymupdf.open(WORK / "terms.pdf")))
+    check("first use spells the acronym out", "First: Portable Document Format (PDF)." in body)
+    check("later uses give the abbreviation", "Second: PDF." in body)
+    check("plural adds an s", "Plural: editors." in body)
+    check("acrfull gives both forms", "Full: Comprehensive TeX Archive Network (CTAN)." in body)
+    check("acronyms are listed", "PDF Portable Document Format." in body)
+    check("acrfull counts as a use", "CTAN Comprehensive TeX Archive Network." in body)
+    check("an unused term is not listed", "NOPE" not in body)
+    check("the glossary lists its entries", "editor A program for editing plain text." in body)
+    # The index is alphabetical, so the term marked second comes first.
+    check("the index is sorted", body.index("alpha,") < body.index("gamma,"))
 
     print("\nreference styles")
     for style, expected, unexpected in (

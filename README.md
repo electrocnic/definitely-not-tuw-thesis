@@ -62,7 +62,10 @@ The summaries carry the language they are written in, so the heading follows:
 #abstract("de")[Ihr Text hier.]            // titled "Kurzfassung"
 ```
 
-The declaration of authorship, the running heads and the contents follow `lang`.
+The declaration of authorship, the running heads and the contents follow `lang`. A title page
+is printed for each language in use, German first — the order the class's own example uses.
+Pass `title-page-languages: ("en", "de")` to lead with the thesis's own language instead, or
+to print only one.
 
 ### Thesis type and degree
 
@@ -129,9 +132,34 @@ Beyond ordinary Typst, the template adds:
 | `toc`, `list-of-figures`, `list-of-tables`, `list-of-algorithms`, `list-of-listings` | |
 | `front-matter`, `main-matter`, `back-matter`, `appendix` | applied as `#show:` rules |
 | `ai-tools` | the appendix the declaration of authorship refers to |
+| `gls`, `acrshort`, `acrlong`, `acrfull` | acronyms and glossary terms |
+| `index-entry` | mark a place for the index |
+| `acronyms`, `glossary`, `index` | the three lists at the back |
 
 Figures, tables, equations, algorithms and listings are numbered within their chapter and
 their counters restart with it.
+
+### Acronyms, a glossary and an index
+
+Terms are declared once, on `thesis`, the way `\newacronym` and `\newglossaryentry` declare
+them — an acronym carries a `short` and a `long` form, a glossary entry a `name` and a
+`description`:
+
+```typst
+terms: (
+  pdf: (short: "PDF", long: "Portable Document Format"),
+  editor: (name: "editor", description: "A program for editing plain text."),
+),
+```
+
+`gls("pdf")` then spells the acronym out on its first use — "Portable Document Format
+(PDF)" — and gives the abbreviation after that, as `\gls` does. `plural` and `capitalize`
+cover `\glspl`, `\Gls` and `\Glspl`; `acrshort`, `acrlong` and `acrfull` force one form.
+`index-entry("term")` marks a place for the index, like `\index`.
+
+`acronyms()`, `glossary()` and `index()` print the three lists at the back. Each lists only
+the terms actually used, and collects the pages they appear on — the job `makeindex` does
+for LaTeX, except that nothing has to be run twice.
 
 Code is syntax-highlighted by default. For the plain black of the LaTeX original, add
 `#show raw: set text(fill: black)` to `thesis.typ`.
@@ -188,6 +216,8 @@ src/
   floats.typ         sub-figures, algorithms, listings, flexible captions
   outlines.typ       the table of contents and the four lists
   matter.typ         \frontmatter, \mainmatter, \backmatter, appendix
+  reference-lists.typ acronyms, the glossary and the index
+  degrees.typ        the degree each thesis type awards
   i18n/              the class's own German and English wording
 template/            what `typst init` gives you, fonts included
 tests/               regression checks against the reference metrics

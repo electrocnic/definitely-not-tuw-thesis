@@ -20,6 +20,9 @@
   list-of-algorithms, list-of-figures, list-of-listings, list-of-tables, outline-styles, toc,
 )
 #import "page-style.typ": running-foot, running-head, skip-blank-verso
+#import "reference-lists.typ": (
+  acrfull, acrlong, acronyms, acrshort, glossary, gls, index, index-entry, terms-state,
+)
 #import "statement-page.typ": statement-page
 #import "summaries.typ": abstract, acknowledgements, ai-tools
 #import "title-page.typ": title-page
@@ -54,6 +57,10 @@
   /// stays in one language. Austrian theses are usually written in one language and
   /// summarised in both.
   secondary-lang: "de",
+  /// Which languages get a title page, and in which order. `auto` prints one per language
+  /// in use, German first, as the class's own example does. Pass an explicit array such as
+  /// `("en", "de")` to lead with the thesis's own language instead.
+  title-page-languages: auto,
   /// Title and subtitle, as a dictionary of per-language variants.
   title: (:),
   subtitle: none,
@@ -87,6 +94,10 @@
   university: tu-wien,
   /// A name from `reference-styles`, or any CSL style Typst knows.
   reference-style: "alpha",
+  /// Acronyms and glossary entries, keyed the way \newacronym and \newglossaryentry are.
+  /// An acronym carries a `short` and a `long` form, a glossary entry a `name` and a
+  /// `description`. Use them with `gls`, and list them with `acronyms` and `glossary`.
+  terms: (:),
   keywords: (),
   date: datetime.today(),
   body,
@@ -112,6 +123,7 @@
   )
 
   two-sided-state.update(two-sided)
+  terms-state.update(terms)
 
   set page(
     width: paper-width,
@@ -182,9 +194,11 @@
   // follows them is page v.
   show: front-matter
 
-  // One title page per language. German comes first where both are printed, which is the
-  // order the class's own example uses.
-  let title-languages = if secondary-lang == none {
+  // One title page per language. German comes first by default, which is the order the
+  // class's own example uses.
+  let title-languages = if title-page-languages != auto {
+    title-page-languages
+  } else if secondary-lang == none {
     (lang,)
   } else if lang == "de" {
     (lang, secondary-lang)

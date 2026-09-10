@@ -1,4 +1,6 @@
-#import "@preview/definitely-not-tuw-thesis:0.3.0": algorithm, flex-caption, listing, subfigure, subfigure-row
+#import "@preview/definitely-not-tuw-thesis:0.3.0": (
+  acrfull, algorithm, flex-caption, gls, index-entry, listing, subfigure, subfigure-row,
+)
 
 = Using This Template <sec-tour-chapter>
 
@@ -271,6 +273,21 @@ line numbering continuous across nesting the way `algorithm2e` does.
   (0, [*end*]),
   (0, [*return* $arrow(x)^((k))$]),
 ) <alg-gauss-seidel>
+
+== Acronyms, a glossary and an index
+
+Terms are declared once in `thesis.typ` and used with `gls`. The first use of an acronym
+spells it out and the rest give the abbreviation, so #gls("pdf") reads in full here and as
+#gls("pdf") from now on. `gls` takes `plural` and `capitalize` for the other forms:
+#gls("editor", plural: true), #gls("wysiwyg", capitalize: true). `acrfull` gives both forms
+wherever you need them: #acrfull("ctan").
+
+A word is added to the index by marking a place in the text#index-entry("index") with
+`index-entry`. The same term can be marked as often as
+needed#index-entry("index")#index-entry("typesetting"); the entry collects the pages.
+
+The three lists at the back are printed by `acronyms()`, `glossary()` and `index()`, and
+each lists only the terms actually used, as `\printglossaries` does.
 
 == Lists and quotations
 

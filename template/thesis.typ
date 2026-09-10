@@ -70,6 +70,19 @@
   // even margins, no blank pages, every page laid out like a right-hand one.
   two-sided: true,
 
+  // Acronyms and glossary entries, declared here the way \newacronym and \newglossaryentry
+  // declare them. Use them in the text with gls(), and list them at the back with
+  // acronyms() and glossary().
+  terms: (
+    ctan: (short: "CTAN", long: "Comprehensive TeX Archive Network"),
+    pdf: (short: "PDF", long: "Portable Document Format"),
+    wysiwyg: (short: "WYSIWYG", long: "What You See Is What You Get"),
+    editor: (
+      name: "editor",
+      description: "A text editor is a type of program used for editing plain text files.",
+    ),
+  ),
+
   keywords: ("a", "list", "of", "keywords"),
   date: datetime(year: 2001, month: 1, day: 1),
 )
@@ -100,5 +113,9 @@
 #list-of-tables("en")
 #list-of-algorithms("en")
 #list-of-listings("en")
+
+#acronyms("en")
+#glossary("en")
+#index("en")
 
 #bibliography("refs.bib")
