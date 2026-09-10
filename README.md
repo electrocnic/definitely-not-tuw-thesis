@@ -100,6 +100,14 @@ The author additionally carries a `student-number` and a `gender`. `title`, `sub
 "January 1, 2001" in English. The institution under the title page is `university`,
 defaulting to TU Wien.
 
+### Printing
+
+`two-sided` defaults to `true`, as a bound thesis is printed — the margins alternate 25.2mm
+and 37.8mm so the binding edge is wider, chapters open on a right-hand page, and the page in
+between is left blank and unnumbered. Set it to `false` for the class's `onside` layout:
+margins split evenly at 31.5mm, no page is left blank, and every page is laid out the way a
+right-hand page is. The title pages keep their own symmetric margins either way.
+
 ### References
 
 `reference-style` defaults to `"alpha"` — BibTeX's alpha style, whose labels are built from

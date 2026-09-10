@@ -6,6 +6,7 @@
 // authorship, and then hands over to the author's own content.
 
 #import "layout.typ": *
+#import "layout.typ": two-sided as two-sided-state
 #import "fonts.typ": *
 #import "degrees.typ": resolve-degree
 #import "floats.typ": (
@@ -78,6 +79,10 @@
   second-advisor: none,
   assistants: (),
   reviewers: (),
+  /// Printed on both sides of the leaf, as a bound thesis is. Set to false for single-sided
+  /// printing: the margins become symmetric, no page is left blank to start a chapter on a
+  /// right-hand page, and every page is laid out the way a right-hand page is.
+  two-sided: true,
   /// The institution's own details, printed under the title page.
   university: tu-wien,
   /// A name from `reference-styles`, or any CSL style Typst knows.
@@ -106,10 +111,12 @@
     date: date,
   )
 
+  two-sided-state.update(two-sided)
+
   set page(
     width: paper-width,
     height: paper-height,
-    margin: body-margin,
+    margin: if two-sided { body-margin } else { single-sided-margin },
     header-ascent: header-ascent,
     footer-descent: footer-descent,
     header: running-head(),

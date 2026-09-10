@@ -1,5 +1,7 @@
 // Small shared helpers.
 
+#import "layout.typ": two-sided
+
 /// Render a person as "Pre-title Name, Post-title", skipping the parts that are absent.
 ///
 /// A person is a dictionary with a `name` and the optional keys `pre-title` and
@@ -31,5 +33,6 @@
 ]
 
 /// True on right-hand (recto) pages. Typst counts physical pages, and the document opens on
-/// a recto, so odd page numbers are the right-hand ones.
-#let is-recto() = calc.odd(here().page())
+/// a recto, so odd page numbers are the right-hand ones. Printed on one side there is no
+/// left-hand page, and everything follows the right-hand arrangement.
+#let is-recto() = not two-sided.get() or calc.odd(here().page())

@@ -26,6 +26,7 @@ DOCUMENT = """#import "/src/lib.typ": *
 #show: thesis.with(
   lang: "{lang}",
   secondary-lang: {secondary},
+  two-sided: {two_sided},
   title: (en: "An English Title", de: "Ein deutscher Titel"),
   thesis-type: "{thesis_type}",
   master-degree: "{master_degree}",
@@ -75,6 +76,7 @@ def render(
     doctor_degree: str = "none",
     gender: str = "female",
     reviewers: str = "()",
+    two_sided: str = "true",
 ) -> str:
     WORK.mkdir(parents=True, exist_ok=True)
     source = WORK / f"{name}.typ"
@@ -89,6 +91,7 @@ def render(
             doctor_degree=doctor_degree,
             gender=gender,
             reviewers=reviewers,
+            two_sided=two_sided,
         ),
         encoding="utf-8",
     )
@@ -138,6 +141,25 @@ def main() -> int:
     text = render("de-only", "de", None, "alpha", ["de"])
     check("German-only prints one title page", "DIPLOMARBEIT" in text and "DIPLOMA THESIS" not in text)
     check("German-only has no Abstract chapter", "Abstract" not in text)
+
+    print("\nsingle-sided printing")
+    render("one-sided", "en", None, "alpha", ["en"], two_sided="false")
+    doc = pymupdf.open(WORK / "one-sided.pdf")
+    blanks = [n + 1 for n in range(doc.page_count) if not doc[n].get_text().strip()]
+    check("no page is left blank", blanks == [], f"blank: {blanks}")
+    # The margins split evenly rather than 2:3, so the type block starts at the same place on
+    # every page — 31.5mm in, where two-sided printing alternates 25.2mm and 37.8mm. The two
+    # title pages are skipped: they keep their own symmetric 2.4cm margins either way.
+    lefts = {
+        round(span["bbox"][0], 2)
+        for page in list(doc)[2:]
+        for block in page.get_text("dict")["blocks"]
+        if block["type"] == 0
+        for line in block["lines"]
+        for span in line["spans"]
+        if span["text"].strip() and 95 < span["bbox"][1] < 700
+    }
+    check("type block starts at 89.29 on every page", min(lefts) == 89.29, f"min {min(lefts)}")
 
     print("\ndegrees derived from the thesis type and the author's gender")
     for label, kwargs, cover, awarded in (

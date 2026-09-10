@@ -26,6 +26,20 @@
   bottom: margin-bottom,
 )
 
+// Printed on one side, geometry splits the horizontal margin evenly instead of 2:3, there
+// are no pages to leave blank, and every page is laid out the way a right-hand page is.
+#let margin-symmetric = (paper-width - body-width) / 2
+
+#let single-sided-margin = (
+  x: margin-symmetric,
+  top: margin-top,
+  bottom: margin-bottom,
+)
+
+/// Whether the thesis is printed on both sides. Set once by `thesis`, and read wherever the
+/// layout depends on which side of the leaf a page falls on.
+#let two-sided = state("tuw-two-sided", true)
+
 // memoir's `Ruled` page style runs the head and the foot across the type block *plus* the
 // marginal-note strip (\marginparsep + \marginparwidth), so both reach this much further
 // into the outer margin than the text does.

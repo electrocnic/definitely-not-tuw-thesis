@@ -21,10 +21,15 @@
 #let last-content-page = state("tuw-last-content-page", 0)
 
 /// LaTeX's \cleardoublepage: continue on the next right-hand page, leaving any page in
-/// between deliberately blank.
+/// between deliberately blank. Printed on one side there is nothing to skip, and it is an
+/// ordinary page break.
 #let clear-to-recto = {
+  // Each state is read in its own context: an update nested inside a context that branches
+  // on another state does not reliably reach that state's final value.
   context { last-content-page.update(here().page()) }
-  pagebreak(to: "odd", weak: true)
+  context {
+    if two-sided.get() { pagebreak(to: "odd", weak: true) } else { pagebreak(weak: true) }
+  }
   context {
     let landed = here().page()
     let ended = last-content-page.get()
@@ -44,7 +49,7 @@
       blank-pages.update(pages => pages + (current,))
     }
   }
-  pagebreak(to: "odd", weak: true)
+  context { if two-sided.get() { pagebreak(to: "odd", weak: true) } }
 }
 
 #let is-blank-page() = here().page() in blank-pages.final()

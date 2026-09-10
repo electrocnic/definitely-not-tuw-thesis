@@ -66,6 +66,10 @@
   // respective house styles. Any CSL style name Typst knows also works.
   reference-style: "alpha",
 
+  // Printed on both sides, as a bound thesis is. Set to false for single-sided printing:
+  // even margins, no blank pages, every page laid out like a right-hand one.
+  two-sided: true,
+
   keywords: ("a", "list", "of", "keywords"),
   date: datetime(year: 2001, month: 1, day: 1),
 )
