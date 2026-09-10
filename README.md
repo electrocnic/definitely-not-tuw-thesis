@@ -64,13 +64,38 @@ The summaries carry the language they are written in, so the heading follows:
 
 The declaration of authorship, the running heads and the contents follow `lang`.
 
+### Thesis type and degree
+
+The type of thesis decides both the name on the cover and the degree awarded, and most
+degrees are gendered — so neither is typed out. Set `thesis-type`, the degree variant, and
+the author's `gender`, exactly as `\setthesis`, `\setmasterdegree` and `\setdoctordegree`
+do in the class:
+
+| `thesis-type` | variant | cover | degree |
+| --- | --- | --- | --- |
+| `"bachelor"` | — | BACHELORARBEIT | Bachelor of Science |
+| `"master"` | `master-degree: "dipl."` | DIPLOMARBEIT | Diplom-Ingenieur / Diplom-Ingenieurin |
+| `"master"` | `master-degree: "master"` | MASTERARBEIT | Master of Science |
+| `"master"` | `master-degree: "rer.nat."` | MASTERARBEIT | Magister / Magistra der Naturwissenschaften |
+| `"master"` | `master-degree: "rer.soc.oec."` | MASTERARBEIT | Magister / Magistra der Sozial- und Wirtschaftswissenschaften |
+| `"doctor"` | `doctor-degree: "rer.nat."` | DISSERTATION | Doktor / Doktorin der Naturwissenschaften |
+| `"doctor"` | `doctor-degree: "techn."` | DISSERTATION | Doktor / Doktorin der Technischen Wissenschaften |
+| `"doctor"` | `doctor-degree: "rer.soc.oec."` | DISSERTATION | Doktor / Doktorin der Sozial- und Wirtschaftswissenschaften |
+
+A mistyped variant is an error naming the ones that exist, and a gendered degree without a
+`gender` is an error too, rather than a silently wrong cover. `degree:` overrides the
+derivation for an award the class does not list.
+
+A dissertation is laid out differently, and the template follows: it names no curriculum,
+lists no assistants, is reviewed by the people in `reviewers`, and is signed by its author
+alone where a thesis is countersigned by its advisor.
+
 ### People and data
 
 `author`, `advisor`, `second-advisor`, `assistants` and `reviewers` take the same shape as
 the class's `\setauthor` and friends — a `name` with optional `pre-title` and `post-title`.
-The author additionally carries a `student-number`. Reviewers apply to a dissertation: they
-sign above the author, who — unlike the author of a thesis — signs without the advisor
-alongside. `title`, `subtitle`, `degree` and `curriculum` take one variant per language.
+The author additionally carries a `student-number` and a `gender`. `title`, `subtitle` and
+`curriculum` take one variant per language.
 `date` is a `datetime`, rendered the way `datetime2` renders it: "1. Jänner 2001" in German,
 "January 1, 2001" in English. The institution under the title page is `university`,
 defaulting to TU Wien.

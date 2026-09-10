@@ -21,12 +21,21 @@
     de: "Optionaler Untertitel der Arbeit",
   ),
 
-  // "bachelor", "master", "diploma" or "doctor".
-  thesis-type: "diploma",
-  // The degree awarded. Other names the class offers are "Bachelor of Science",
-  // "Master of Science", "Diplom-Ingenieurin", "Magister/Magistra der Naturwissenschaften"
-  // and "… der Sozial- und Wirtschaftswissenschaften".
-  degree: (en: "Diplom-Ingenieur", de: "Diplom-Ingenieur"),
+  // The thesis type decides both the name on the cover and the degree awarded, exactly as
+  // \setthesis, \setmasterdegree and \setdoctordegree do in the LaTeX class:
+  //
+  //   "bachelor"                            BACHELORARBEIT, Bachelor of Science
+  //   "master" + master-degree "dipl."      DIPLOMARBEIT,   Diplom-Ingenieur(in)
+  //   "master" + master-degree "master"     MASTERARBEIT,   Master of Science
+  //   "master" + master-degree "rer.nat."   MASTERARBEIT,   Magister/Magistra der Naturwissenschaften
+  //   "master" + "rer.soc.oec."             MASTERARBEIT,   … der Sozial- und Wirtschaftswissenschaften
+  //   "doctor" + doctor-degree "techn."     DISSERTATION,   Doktor(in) der Technischen Wissenschaften
+  //   "doctor" + "rer.nat." / "rer.soc.oec." likewise
+  //
+  // Most of those names are gendered, so the author below carries a `gender`.
+  thesis-type: "master",
+  master-degree: "dipl.",
+  // doctor-degree: "techn.",
   curriculum: (
     en: "Media Informatics and Visual Computing",
     de: "Medieninformatik und Visual Computing",
@@ -37,6 +46,7 @@
     name: "Forename Surname",
     post-title: "Posttitle",
     student-number: "0123456",
+    gender: "female",
   ),
   advisor: (pre-title: "Pretitle", name: "Forename Surname", post-title: "Posttitle"),
   // second-advisor: (name: "Forename Surname"),

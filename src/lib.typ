@@ -7,6 +7,7 @@
 
 #import "layout.typ": *
 #import "fonts.typ": *
+#import "degrees.typ": resolve-degree
 #import "floats.typ": (
   algorithm, figure-caption-gap, flex-caption, listing, subfigure, subfigure-row,
   subfigure-styles,
@@ -55,17 +56,22 @@
   /// Title and subtitle, as a dictionary of per-language variants.
   title: (:),
   subtitle: none,
-  /// One of "bachelor", "master", "diploma" or "doctor".
-  thesis-type: "diploma",
-  /// The academic degree awarded. The class offers "Bachelor of Science",
-  /// "Master of Science", "Diplom-Ingenieur(in)", "Magister/Magistra der
-  /// Naturwissenschaften", "… der Sozial- und Wirtschaftswissenschaften" and the
-  /// corresponding doctorates.
-  degree: (en: "Diplom-Ingenieur", de: "Diplom-Ingenieur"),
-  /// The curriculum. Dissertations leave this out.
+  /// "bachelor", "master" or "doctor".
+  thesis-type: "master",
+  /// Which master's degree, when `thesis-type` is "master": "dipl.", "master", "rer.nat."
+  /// or "rer.soc.oec.". "dipl." is what makes a thesis a Diplomarbeit.
+  master-degree: "dipl.",
+  /// Which doctorate, when `thesis-type` is "doctor": "rer.nat.", "techn." or
+  /// "rer.soc.oec.".
+  doctor-degree: none,
+  /// The degree awarded is derived from the two settings above and from the author's
+  /// gender, as the class derives it. Set this only for an award the class does not list.
+  degree: auto,
+  /// The curriculum. A dissertation does not name one, and this is ignored there.
   curriculum: none,
   /// People. Each is a dictionary with `name` and the optional keys `pre-title` and
-  /// `post-title`; the author additionally carries a `student-number`. Reviewers apply to a
+  /// `post-title`; the author additionally carries a `student-number` and a `gender` of
+  /// "male" or "female", which most degree names depend on. Reviewers apply to a
   /// dissertation, which they sign above the author.
   author: (:),
   advisor: none,
@@ -85,9 +91,12 @@
     secondary-lang == none or secondary-lang in ("en", "de"),
     message: "secondary-lang must be \"en\", \"de\" or none",
   )
-  assert(
-    thesis-type in ("bachelor", "master", "diploma", "doctor"),
-    message: "unknown thesis type: " + thesis-type,
+  let awarded = resolve-degree(
+    thesis-type,
+    master-degree,
+    doctor-degree,
+    author.at("gender", default: none),
+    degree,
   )
 
   set document(
@@ -147,9 +156,11 @@
   let meta = (
     title: title,
     subtitle: subtitle,
-    thesis-type: thesis-type,
-    degree: degree,
-    curriculum: curriculum,
+    thesis-name: awarded.thesis-name,
+    degree: awarded.degree,
+    // A dissertation names no curriculum and lists no assistants.
+    graduate: awarded.graduate,
+    curriculum: if awarded.graduate { none } else { curriculum },
     author: author,
     advisor: advisor,
     second-advisor: second-advisor,

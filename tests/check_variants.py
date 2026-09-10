@@ -28,8 +28,10 @@ DOCUMENT = """#import "/src/lib.typ": *
   secondary-lang: {secondary},
   title: (en: "An English Title", de: "Ein deutscher Titel"),
   thesis-type: "{thesis_type}",
+  master-degree: "{master_degree}",
+  doctor-degree: {doctor_degree},
   curriculum: (en: "Curriculum", de: "Studium"),
-  author: (name: "Ada Lovelace", student-number: "0123456"),
+  author: (name: "Ada Lovelace", student-number: "0123456", gender: "{gender}"),
   advisor: (name: "Charles Babbage"),
   reviewers: {reviewers},
   reference-style: "{style}",
@@ -68,7 +70,10 @@ def render(
     secondary: str | None,
     style: str,
     summaries: list[str],
-    thesis_type: str = "diploma",
+    thesis_type: str = "master",
+    master_degree: str = "dipl.",
+    doctor_degree: str = "none",
+    gender: str = "female",
     reviewers: str = "()",
 ) -> str:
     WORK.mkdir(parents=True, exist_ok=True)
@@ -80,6 +85,9 @@ def render(
             style=style,
             summaries="".join(SUMMARY.format(lang=s) for s in summaries),
             thesis_type=thesis_type,
+            master_degree=master_degree,
+            doctor_degree=doctor_degree,
+            gender=gender,
             reviewers=reviewers,
         ),
         encoding="utf-8",
@@ -131,6 +139,44 @@ def main() -> int:
     check("German-only prints one title page", "DIPLOMARBEIT" in text and "DIPLOMA THESIS" not in text)
     check("German-only has no Abstract chapter", "Abstract" not in text)
 
+    print("\ndegrees derived from the thesis type and the author's gender")
+    for label, kwargs, cover, awarded in (
+        ("bachelor", dict(thesis_type="bachelor"), "BACHELOR'S THESIS", "Bachelor of Science"),
+        (
+            "master + dipl., female",
+            dict(thesis_type="master", master_degree="dipl.", gender="female"),
+            "DIPLOMA THESIS",
+            "Diplom-Ingenieurin",
+        ),
+        (
+            "master + dipl., male",
+            dict(thesis_type="master", master_degree="dipl.", gender="male"),
+            "DIPLOMA THESIS",
+            "Diplom-Ingenieur",
+        ),
+        (
+            "master + master",
+            dict(thesis_type="master", master_degree="master"),
+            "MASTER'S THESIS",
+            "Master of Science",
+        ),
+        (
+            "master + rer.nat., female",
+            dict(thesis_type="master", master_degree="rer.nat.", gender="female"),
+            "MASTER'S THESIS",
+            "Magistra der Naturwissenschaften",
+        ),
+        (
+            "doctor + techn., male",
+            dict(thesis_type="doctor", doctor_degree='"techn."', gender="male"),
+            "DISSERTATION",
+            "Doktor der Technischen Wissenschaften",
+        ),
+    ):
+        text = render(f"degree-{len(failures)}-{label[:8]}", "en", None, "alpha", ["en"], **kwargs)
+        check(f"{label} — cover says {cover}", cover in text)
+        check(f"{label} — awards {awarded}", awarded in text)
+
     print("\ndissertation title page")
     render(
         "dissertation",
@@ -139,6 +185,7 @@ def main() -> int:
         "alpha",
         ["en"],
         thesis_type="doctor",
+        doctor_degree='"techn."',
         reviewers='((name: "Grace Hopper"), (name: "Alan Turing"))',
     )
     rules = title_page_rules("dissertation")

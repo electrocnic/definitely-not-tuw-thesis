@@ -27,8 +27,11 @@
 // upwards into the space above instead of displacing everything below it.
 #let title-block-height = 5cm
 
-// From the "reviewed by" line down to the reviewers' rules.
+// From the "reviewed by" line down to the reviewers' rules, and from their names down to
+// the author's. The signature block is anchored to the foot of the page, so the second of
+// these is what lifts the reviewers clear of it.
 #let reviewed-to-signature = 60.2pt
+#let reviewers-to-signature = 27.5pt
 
 // LaTeX places the first baseline of a page \topskip below the top of the type block and
 // advances a further \baselineskip before each box that follows; Typst starts flush with
@@ -99,9 +102,9 @@
 
 /// The date on the left, then the signatures. A thesis is signed by its author and its
 /// advisor; a dissertation only by its author, whose field stays at the outer edge.
-#let signature-block(lang, date, thesis-type, author, advisor) = {
+#let signature-block(lang, date, graduate, author, advisor) = {
   let name-of(person) = if person == none { "" } else { person.at("name", default: "") }
-  let names = if thesis-type == "doctor" {
+  let names = if graduate {
     (name-of(author),)
   } else {
     (name-of(author), name-of(advisor))
@@ -121,6 +124,7 @@
   t(lang, "reviewed-by")
   v(reviewed-to-signature, weak: true)
   signature-fields([], reviewers.map(r => r.at("name", default: "")))
+  v(reviewers-to-signature)
 }
 
 /// One title page in the given language.
@@ -168,7 +172,7 @@
     ]
 
     #align(center)[
-      #centred-line(title-page-size.headline, t(lang, "thesis-type-" + meta.thesis-type))
+      #centred-line(title-page-size.headline, t(lang, "thesis-type-" + meta.thesis-name))
       #centred-line(title-page-size.lead-in, t(lang, "submission"))
       #centred-line(title-page-size.headline, weight: "bold", localised(meta.degree, lang))
       #if meta.curriculum != none [
@@ -197,13 +201,18 @@
       ]
     ]
 
-    #advisor-block(lang, meta.advisor, meta.second-advisor, meta.assistants)
+    #advisor-block(
+      lang,
+      meta.advisor,
+      meta.second-advisor,
+      if meta.graduate { () } else { meta.assistants },
+    )
 
     #v(1fr)
 
     #reviewer-block(lang, meta.reviewers)
 
-    #signature-block(lang, meta.date, meta.thesis-type, meta.author, meta.advisor)
+    #signature-block(lang, meta.date, meta.graduate, meta.author, meta.advisor)
 
     #v(1cm)
   ]
